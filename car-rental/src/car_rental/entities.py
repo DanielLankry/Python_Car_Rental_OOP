@@ -1,6 +1,8 @@
+from datetime import date
 from decimal import Decimal
 
 from .models import VehicleStatus
+from .rental_status import RentalStatus
 
 
 class Vehicle:
@@ -66,16 +68,16 @@ class Customer:
         if id <= 0:
             raise ValueError("id must be positive")
         
-        if not isinstance(first_name, str) or not first_name.strip():
+        if not first_name.strip():
             raise ValueError("first_name must be a non-empty string")
         
-        if not isinstance(last_name, str) or not last_name.strip():
+        if not last_name.strip():
             raise ValueError("last_name must be a non-empty string")
         
         if "@" not in email:
             raise ValueError("email must contain '@'")
         
-        if not isinstance(license_number, str) or not license_number.strip():
+        if not license_number.strip():
             raise ValueError("license_number cannot be empty")
 
         self.id = id
@@ -84,12 +86,55 @@ class Customer:
         self.email = email
         self.license_number = license_number
 
-class Renatl:
-    def __init__{
+class Rental:
+    def __init__(
         self,
-        id:int,
-        customer:Customer,
+        id: int,
+        customer: Customer,
+        vehicle: Vehicle,
+        start_date: date,
+        end_date: date,
+        status: RentalStatus = RentalStatus.RESERVED,
+    ) -> None:
         
-    }
-        
+        if id <= 0:
+            raise ValueError("ID must be positive")
+
+        if start_date > end_date:
+            raise ValueError("start_date cannot be after end_date")
+
+        self.id = id
+        self.customer = customer
+        self.vehicle = vehicle
+        self.start_date = start_date
+        self.end_date = end_date
+        self.status = status
+
+    def start(self) -> None:
+        # Transitions: RESERVED -> ACTIVE only
+        if self.status != RentalStatus.RESERVED:
+            raise ValueError(
+                f"Cannot start rental #{self.id}: status is {self.status.value}, expected reserved"
+            )
+        self.status = RentalStatus.ACTIVE
+
+    def complete(self) -> None:
+        # Transitions: ACTIVE -> COMPLETED only
+        if self.status != RentalStatus.ACTIVE:
+            raise ValueError(
+                f"Cannot complete rental #{self.id}: status is {self.status.value}, expected active"
+            )
+        self.status = RentalStatus.COMPLETED
+
+    def cancel(self) -> None:
+        # Transitions: RESERVED -> CANCELLED only (can't cancel mid-rental)
+        if self.status != RentalStatus.RESERVED:
+            raise ValueError(
+                f"Cannot cancel rental #{self.id}: status is {self.status.value}, expected reserved"
+            )
+        self.status = RentalStatus.CANCELLED
+
+    def duration_days(self) -> int:
+        return (self.end_date - self.start_date).days
+
 
