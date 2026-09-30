@@ -4,10 +4,10 @@ Canonical build order. Work top-to-bottom; check off items as they complete. The
 
 ## Phase 1 — Python & OOP (no framework, no DB)
 
-- [ ] `Vehicle` entity: `id`, `manufacturer`, `model`, `year`, `daily_rate`, `status` (`AVAILABLE`/`RENTED`/`MAINTENANCE`); methods `rent()`, `return_vehicle()`, `send_to_maintenance()`
-- [ ] `Customer` entity: `id`, `first_name`, `last_name`, `email`, `license_number`; validation, invariants
-- [ ] `Rental` entity: `id`, `customer`, `vehicle`, `start_date`, `end_date`, `status`; state machine `RESERVED → ACTIVE → COMPLETED` / `RESERVED → CANCELLED`; methods `start()`, `complete()`, `cancel()`, `duration_days()`
-- [ ] Unit tests for every entity and transition (valid + invalid)
+- [x] `Vehicle` entity: `id`, `manufacturer`, `model`, `year`, `daily_rate`, `status` (`AVAILABLE`/`RENTED`/`MAINTENANCE`); methods `rent()`, `return_vehicle()`, `send_to_maintenance()`
+- [x] `Customer` entity: `id`, `first_name`, `last_name`, `email`, `license_number`; validation, invariants
+- [x] `Rental` entity: `id`, `customer`, `vehicle`, `start_date`, `end_date`, `status`; state machine `RESERVED → ACTIVE → COMPLETED` / `RESERVED → CANCELLED`; methods `start()`, `complete()`, `cancel()`, `duration_days()`
+- [x] Unit tests for every entity and transition (valid + invalid)
 - [ ] `PricingStrategy` Protocol + `StandardPricing`, `PremiumPricing`, `LongTermPricing`
 - [ ] `RentalService`: `create_rental`, `start_rental`, `complete_rental`, `cancel_rental`
 - [ ] Repository Protocols (`VehicleRepository`, `CustomerRepository`, `RentalRepository`) + `InMemory*` implementations
