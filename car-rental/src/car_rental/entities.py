@@ -1,8 +1,9 @@
 from datetime import date
 from decimal import Decimal
 
-from .models import VehicleStatus
+from .pricing import PricingStrategy, StandardPricing
 from .rental_status import RentalStatus
+from .vehicle_status import VehicleStatus
 
 
 class Vehicle:
@@ -95,6 +96,7 @@ class Rental:
         start_date: date,
         end_date: date,
         status: RentalStatus = RentalStatus.RESERVED,
+        pricing_strategy: PricingStrategy | None = None,
     ) -> None:
         
         if id <= 0:
@@ -109,6 +111,7 @@ class Rental:
         self.start_date = start_date
         self.end_date = end_date
         self.status = status
+        self.pricing_strategy = pricing_strategy or StandardPricing()
 
     def start(self) -> None:
         # Transitions: RESERVED -> ACTIVE only
@@ -136,5 +139,10 @@ class Rental:
 
     def duration_days(self) -> int:
         return (self.end_date - self.start_date).days
+
+    def total_price(self) -> Decimal:
+        """Calculate total price using the assigned pricing strategy."""
+        days = self.duration_days()
+        return self.pricing_strategy.calculate_total(days, self.vehicle.daily_rate)
 
 
