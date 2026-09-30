@@ -1,9 +1,28 @@
+from datetime import date
 from decimal import Decimal
 
 import pytest
 
-from car_rental.entities import Customer, Vehicle
+from car_rental.entities import Customer, Rental, Vehicle
 from car_rental.models import VehicleStatus
+from car_rental.rental_status import RentalStatus
+
+
+@pytest.fixture
+def rental() -> Rental:
+    """Builds a valid Rental once per test — avoids repeating setup in every test."""
+    customer = Customer(
+        id=1, first_name="Daniel", last_name="Lonkry",
+        email="daniel@example.com", license_number="D1234567",
+    )
+    vehicle = Vehicle(
+        id=1, manufacturer="Toyota", model="Camry",
+        year=2023, daily_rate=Decimal("50.00"),
+    )
+    return Rental(
+        id=1, customer=customer, vehicle=vehicle,
+        start_date=date(2026, 9, 28), end_date=date(2026, 10, 3),
+    )
 
 
 class TestVehicle:
@@ -100,6 +119,104 @@ class TestVehicleTransitions:
         v.send_to_maintenance()
         with pytest.raises(ValueError):
             v.send_to_maintenance()
+
+
+class TestRentalConstruction:
+    def test_valid_construction(self, rental: Rental):
+        assert rental.id == 1
+        assert rental.status == RentalStatus.RESERVED  # default
+        assert rental.customer.first_name == "Daniel"  # reachable through the reference
+        assert rental.vehicle.manufacturer == "Toyota"
+
+    def test_default_status_is_reserved(self, rental: Rental):
+        assert rental.status == RentalStatus.RESERVED
+
+    def test_end_before_start_raises(self):
+        customer = Customer(
+            id=1, first_name="Daniel", last_name="Lonkry",
+            email="daniel@example.com", license_number="D1234567",
+        )
+        vehicle = Vehicle(
+            id=1, manufacturer="Toyota", model="Camry",
+            year=2023, daily_rate=Decimal("50.00"),
+        )
+        with pytest.raises(ValueError):
+            Rental(
+                id=1, customer=customer, vehicle=vehicle,
+                start_date=date(2026, 10, 3), end_date=date(2026, 9, 28),
+            )
+
+    def test_negative_id_raises(self):
+        customer = Customer(
+            id=1, first_name="Daniel", last_name="Lonkry",
+            email="daniel@example.com", license_number="D1234567",
+        )
+        vehicle = Vehicle(
+            id=1, manufacturer="Toyota", model="Camry",
+            year=2023, daily_rate=Decimal("50.00"),
+        )
+        with pytest.raises(ValueError):
+            Rental(
+                id=-1, customer=customer, vehicle=vehicle,
+                start_date=date(2026, 9, 28), end_date=date(2026, 10, 3),
+            )
+
+
+class TestRentalTransitions:
+    def test_start_from_reserved(self, rental: Rental):
+        rental.start()
+        assert rental.status == RentalStatus.ACTIVE
+
+    def test_start_twice_raises(self, rental: Rental):
+        rental.start()
+        with pytest.raises(ValueError):
+            rental.start()
+
+    def test_complete_from_active(self, rental: Rental):
+        rental.start()
+        rental.complete()
+        assert rental.status == RentalStatus.COMPLETED
+
+    def test_complete_without_start_raises(self, rental: Rental):
+        # Skipping start() — RESERVED cannot jump straight to COMPLETED
+        with pytest.raises(ValueError):
+            rental.complete()
+
+    def test_cancel_from_reserved(self, rental: Rental):
+        rental.cancel()
+        assert rental.status == RentalStatus.CANCELLED
+
+    def test_cancel_after_start_raises(self, rental: Rental):
+        # Once ACTIVE, the vehicle is out — cancelling is no longer allowed
+        rental.start()
+        with pytest.raises(ValueError):
+            rental.cancel()
+
+    def test_start_after_cancel_raises(self, rental: Rental):
+        rental.cancel()
+        with pytest.raises(ValueError):
+            rental.start()
+
+
+class TestRentalDuration:
+    def test_duration_five_days(self, rental: Rental):
+        # 2026-09-28 → 2026-10-03 = 5 days
+        assert rental.duration_days() == 5
+
+    def test_duration_same_day(self):
+        customer = Customer(
+            id=1, first_name="Daniel", last_name="Lonkry",
+            email="daniel@example.com", license_number="D1234567",
+        )
+        vehicle = Vehicle(
+            id=1, manufacturer="Toyota", model="Camry",
+            year=2023, daily_rate=Decimal("50.00"),
+        )
+        rental = Rental(
+            id=1, customer=customer, vehicle=vehicle,
+            start_date=date(2026, 9, 28), end_date=date(2026, 9, 28),
+        )
+        assert rental.duration_days() == 0
                     
 
         
