@@ -8,7 +8,7 @@ Canonical build order. Work top-to-bottom; check off items as they complete. The
 - [x] `Customer` entity: `id`, `first_name`, `last_name`, `email`, `license_number`; validation, invariants
 - [x] `Rental` entity: `id`, `customer`, `vehicle`, `start_date`, `end_date`, `status`; state machine `RESERVED → ACTIVE → COMPLETED` / `RESERVED → CANCELLED`; methods `start()`, `complete()`, `cancel()`, `duration_days()`
 - [x] Unit tests for every entity and transition (valid + invalid)
-- [ ] `PricingStrategy` Protocol + `StandardPricing`, `PremiumPricing`, `LongTermPricing`
+- [x] `PricingStrategy` Protocol + `StandardPricing`, `PremiumPricing`, `LongTermPricing`
 - [ ] `RentalService`: `create_rental`, `start_rental`, `complete_rental`, `cancel_rental`
 - [ ] Repository Protocols (`VehicleRepository`, `CustomerRepository`, `RentalRepository`) + `InMemory*` implementations
 - [ ] `PaymentGateway` Protocol + mock (`success` / `decline` / `exception` / `timeout`)
