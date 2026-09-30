@@ -113,6 +113,7 @@ class Rental:
         self.status = status
         self.pricing_strategy = pricing_strategy or StandardPricing()
 
+
     def start(self) -> None:
         # Transitions: RESERVED -> ACTIVE only
         if self.status != RentalStatus.RESERVED:
@@ -141,8 +142,6 @@ class Rental:
         return (self.end_date - self.start_date).days
 
     def total_price(self) -> Decimal:
-        """Calculate total price using the assigned pricing strategy."""
-        days = self.duration_days()
-        return self.pricing_strategy.calculate_total(days, self.vehicle.daily_rate)
+        return self.pricing_strategy.calculate_total(self.duration_days(),self.vehicle.daily_rate)
 
 

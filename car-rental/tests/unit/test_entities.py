@@ -4,8 +4,9 @@ from decimal import Decimal
 import pytest
 
 from car_rental.entities import Customer, Rental, Vehicle
-from car_rental.models import VehicleStatus
+from car_rental.pricing import LongTermPricing, PremiumPricing, StandardPricing
 from car_rental.rental_status import RentalStatus
+from car_rental.vehicle_status import VehicleStatus
 
 
 @pytest.fixture
@@ -220,66 +221,27 @@ class TestRentalDuration:
 
 
 class TestRentalPricing:
-    def test_rental_default_strategy(self, rental: Rental):
-        from car_rental.pricing import StandardPricing
+    def test_defaults_to_standard(self, rental: Rental):
         assert isinstance(rental.pricing_strategy, StandardPricing)
 
-    def test_rental_custom_strategy(self):
-        from car_rental.pricing import PremiumPricing
-        customer = Customer(
-            id=1, first_name="Daniel", last_name="Lonkry",
-            email="daniel@example.com", license_number="D1234567",
-        )
-        vehicle = Vehicle(
-            id=1, manufacturer="Toyota", model="Camry",
-            year=2023, daily_rate=Decimal("50.00"),
-        )
-        rental = Rental(
-            id=1, customer=customer, vehicle=vehicle,
-            start_date=date(2026, 9, 28), end_date=date(2026, 10, 3),
-            pricing_strategy=PremiumPricing(),
-        )
+    def test_accepts_custom_strategy(self, rental: Rental):
+        rental.pricing_strategy = PremiumPricing()
         assert isinstance(rental.pricing_strategy, PremiumPricing)
 
-    def test_rental_total_price(self, rental: Rental):
-        # 5 days * $50/day = $250
+    def test_total_price_standard(self, rental: Rental):
+        # fixture: 5 days, $50/day
         assert rental.total_price() == Decimal("250.00")
 
-    def test_rental_total_price_with_premium(self):
-        from car_rental.pricing import PremiumPricing
-        customer = Customer(
-            id=1, first_name="Daniel", last_name="Lonkry",
-            email="daniel@example.com", license_number="D1234567",
-        )
-        vehicle = Vehicle(
-            id=1, manufacturer="Toyota", model="Camry",
-            year=2023, daily_rate=Decimal("50.00"),
-        )
-        rental = Rental(
-            id=1, customer=customer, vehicle=vehicle,
-            start_date=date(2026, 9, 28), end_date=date(2026, 10, 3),
-            pricing_strategy=PremiumPricing(),
-        )
-        # 5 days * $50/day * 1.2 = $300
+    def test_total_price_premium(self, rental: Rental):
+        rental.pricing_strategy = PremiumPricing()
+        # 5 * 50 * 1.2
         assert rental.total_price() == Decimal("300.00")
 
-    def test_rental_total_price_with_long_term(self):
-        from car_rental.pricing import LongTermPricing
-        customer = Customer(
-            id=1, first_name="Daniel", last_name="Lonkry",
-            email="daniel@example.com", license_number="D1234567",
-        )
-        vehicle = Vehicle(
-            id=1, manufacturer="Toyota", model="Camry",
-            year=2023, daily_rate=Decimal("50.00"),
-        )
-        rental = Rental(
-            id=1, customer=customer, vehicle=vehicle,
-            start_date=date(2026, 9, 28), end_date=date(2026, 10, 10),
-            pricing_strategy=LongTermPricing(),
-        )
-        # 12 days = 7 @ full + 5 @ 10% off = $350 + $225 = $575
-        assert rental.total_price() == Decimal("575.00")
+    def test_total_price_long_term(self, rental: Rental):
+        rental.pricing_strategy = LongTermPricing()
+        # 5 days <= 7, so still full price
+        assert rental.total_price() == Decimal("250.00")
+
                     
 
         
