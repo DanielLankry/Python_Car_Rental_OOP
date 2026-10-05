@@ -115,19 +115,34 @@ class Rental:
 
 
     def start(self) -> None:
-        # Transitions: RESERVED -> ACTIVE only
+        """Move the rental to ACTIVE and reserve the vehicle.
+
+        Order matters: the vehicle is rented FIRST because that is the
+        operation that can fail (the vehicle may not be AVAILABLE). Only
+        after it succeeds do we flip the rental's own status. A failed
+        start therefore leaves the rental RESERVED and the vehicle
+        untouched — never a half-started rental.
+        """
         if self.status != RentalStatus.RESERVED:
             raise ValueError(
                 f"Cannot start rental #{self.id}: status is {self.status.value}, expected reserved"
             )
+        self.vehicle.rent()  # raises if the vehicle is not AVAILABLE
         self.status = RentalStatus.ACTIVE
 
     def complete(self) -> None:
-        # Transitions: ACTIVE -> COMPLETED only
+        """Move the rental to COMPLETED and release the vehicle.
+
+        Same ordering rule as start(): release the vehicle FIRST (it can
+        fail if the vehicle isn't currently rented), then flip the rental's
+        own status. A failed complete leaves the rental ACTIVE and the
+        vehicle RENTED — a consistent state.
+        """
         if self.status != RentalStatus.ACTIVE:
             raise ValueError(
                 f"Cannot complete rental #{self.id}: status is {self.status.value}, expected active"
             )
+        self.vehicle.return_vehicle()  # raises if the vehicle is not RENTED
         self.status = RentalStatus.COMPLETED
 
     def cancel(self) -> None:
