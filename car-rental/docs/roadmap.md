@@ -10,7 +10,7 @@ Canonical build order. Work top-to-bottom; check off items as they complete. The
 - [x] Unit tests for every entity and transition (valid + invalid)
 - [x] `PricingStrategy` Protocol + `StandardPricing`, `PremiumPricing`, `LongTermPricing`
 - [ ] `RentalService`: `create_rental`, `start_rental`, `complete_rental`, `cancel_rental`
-- [ ] Repository Protocols (`VehicleRepository`, `CustomerRepository`, `RentalRepository`) + `InMemory*` implementations
+- [x] Repository Protocols (`VehicleRepository`, `CustomerRepository`, `RentalRepository`) + `InMemory*` implementations
 - [ ] `PaymentGateway` Protocol + mock (`success` / `decline` / `exception` / `timeout`)
 - [ ] `logging` for meaningful events (created/started/completed/cancelled, payment failed, invalid transition, db op failed)
 - [ ] Centralized config (`DATABASE_URL`, `LOG_LEVEL`, `ENVIRONMENT`); no secrets committed
