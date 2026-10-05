@@ -120,6 +120,7 @@ class Rental:
             raise ValueError(
                 f"Cannot start rental #{self.id}: status is {self.status.value}, expected reserved"
             )
+        self.vehicle.rent()
         self.status = RentalStatus.ACTIVE
 
     def complete(self) -> None:
@@ -128,6 +129,7 @@ class Rental:
             raise ValueError(
                 f"Cannot complete rental #{self.id}: status is {self.status.value}, expected active"
             )
+        self.vehicle.return_vehicle()
         self.status = RentalStatus.COMPLETED
 
     def cancel(self) -> None:

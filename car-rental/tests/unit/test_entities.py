@@ -245,4 +245,35 @@ class TestRentalPricing:
                     
 
         
-    
+class TestRentalVehicleCoordination:
+
+    def test_start_reserve_vehicle(self,rental:Rental):
+        rental.start()
+        assert rental.status == RentalStatus.ACTIVE
+        assert rental.vehicle.status == VehicleStatus.RENTED
+
+    def test_start_on_unavailable_vehicle_raises(self, rental:Rental):
+
+        rental.vehicle.rent()
+
+        with pytest.raises(ValueError):
+            rental.start()
+
+        assert rental.status == RentalStatus.RESERVED
+        assert rental.vehicle.status == VehicleStatus.RENTED
+        
+    def test_complete_releases_vehicle(self, rental: Rental):
+        rental.start()
+        rental.complete()
+        assert rental.status == RentalStatus.COMPLETED
+        assert rental.vehicle.status == VehicleStatus.AVAILABLE
+
+    def test_full_cycle_vehicle_bookable_again(self, rental: Rental):
+        rental.start()
+        rental.complete()
+        # Vehicle is AVAILABLE again — another rental can take it.
+        rental.vehicle.rent()
+        assert rental.vehicle.status == VehicleStatus.RENTED
+
+
+
