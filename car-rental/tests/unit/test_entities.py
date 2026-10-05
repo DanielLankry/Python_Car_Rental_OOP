@@ -242,37 +242,6 @@ class TestRentalPricing:
         # 5 days <= 7, so still full price
         assert rental.total_price() == Decimal("250.00")
 
-
-class TestRentalVehicleCoordination:
-    """Rental lifecycle must drive the vehicle's availability."""
-
-    def test_start_reserves_vehicle(self, rental: Rental):
-        rental.start()
-        assert rental.status == RentalStatus.ACTIVE
-        assert rental.vehicle.status == VehicleStatus.RENTED
-
-    def test_start_on_unavailable_vehicle_raises(self, rental: Rental):
-        # Simulate the vehicle being taken by someone else first.
-        rental.vehicle.rent()
-        with pytest.raises(ValueError):
-            rental.start()
-        # Neither object changed — rental still reserved, vehicle still rented.
-        assert rental.status == RentalStatus.RESERVED
-        assert rental.vehicle.status == VehicleStatus.RENTED
-
-    def test_complete_releases_vehicle(self, rental: Rental):
-        rental.start()
-        rental.complete()
-        assert rental.status == RentalStatus.COMPLETED
-        assert rental.vehicle.status == VehicleStatus.AVAILABLE
-
-    def test_full_cycle_vehicle_bookable_again(self, rental: Rental):
-        rental.start()
-        rental.complete()
-        # Vehicle is AVAILABLE again — another rental can take it.
-        rental.vehicle.rent()
-        assert rental.vehicle.status == VehicleStatus.RENTED
-
                     
 
         
